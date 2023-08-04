@@ -1,0 +1,9 @@
+<template name="exported">
+	{{#if Template.subscriptionsReady}}
+		<ul class="list-disc list-inside my-2">
+			{{#each f in list}}
+				<li>{{f.url}} {{f.downloaded}}</li>
+			{{/each}}
+		</ul>
+	{{/if}}
+</template>

@@ -1,0 +1,13 @@
+<!-- Also, the body section can be referenced in your JavaScript with Template.body.
+Think of it as a special “parent” template, that can include the other child templates. -->
+<!-- All of the code in your HTML files will be compiled with Meteor’s Spacebars compiler.
+Spacebars uses statements surrounded by double curly braces such as {{#each}} and {{#if}} to let you add logic and data to your views.
+https://www.blazejs.org/api/spacebars.html -->
+
+<body>
+	<div class="container mx-auto">
+		{{> exports}}
+		{{> exported}}
+	</div>
+</body>
+

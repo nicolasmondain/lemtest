@@ -1,0 +1,14 @@
+<template name="exports">
+	{{#if Template.subscriptionsReady}}
+		<button type="button" class="my-2 px-4 py-2 font-semibold text-sm text-white bg-gray-light js-new">
+			Export
+		</button>
+		{{#if exports.length}}
+		<ul role="list" class="divide-y divide-gray-100 rounded-md border border-gray-200">
+			{{#each e in exports}}
+				{{> export export=e update=update files=files}}
+			{{/each}}
+		</ul>
+		{{/if}}
+  {{/if}}
+</template>
