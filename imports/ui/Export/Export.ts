@@ -1,23 +1,8 @@
-import {
-
-	LemtestExportMethods,
-	TemplateInstanceExport
-
-} from '../../../@types/lemtest';
-
-import {Exportable} from '../../modules/Exportable';
+import {LemtestFile} from '../../../@types/lemtest';
 import {Template} from 'meteor/templating';
-import {ReactiveVar} from 'meteor/reactive-var';
+import {FilesCollection} from '/imports/api/FilesCollection';
 
 import './Export.html';
-
-Template.export.onCreated(function(this: TemplateInstanceExport) {
-
-	this.export = new ReactiveVar({} as Exportable);
-	this.update = new ReactiveVar({} as LemtestExportMethods['onChange']);
-
-});
-
 
 Template.export.helpers({
 
@@ -62,11 +47,12 @@ Template.export.events({
 
 			await this.export.start();
 
-			const total  = this.files.length;
+			const files  = FilesCollection.find({}).fetch();
+			const total  = files.length;
 			const random = Math.floor(Math.random() * total);
-			const file	 = this.files[random];
+			const file	 = files[random];
 
-			this.export.updateFile(file);
+			this.export.updateFile(file as LemtestFile);
 
 		}catch(error){
 
@@ -77,7 +63,6 @@ Template.export.events({
   },
 	'click .js-stop'(){this.export.stop()},
 	'click .js-pause'(){this.export.pause()},
-	'click .js-cancel'(){this.export.cancel()},
 	'click .js-delete'(){this.export.delete()},
 	'click .js-download'(){this.export.download()}
 

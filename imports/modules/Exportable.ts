@@ -1,64 +1,68 @@
 import {
 
 	LemtestFile,
-	LemtestExportOptions,
-	LemtestExportMethods
+	LemtestExportOptions
 
 } from '../../@types/lemtest';
 
 import c from './Exportable.constants';
 
+import {ExportsCollection} from '../api/ExportsCollection';
+import {FilesCollection} from '../api/FilesCollection';
+
 export class Exportable{
 
-	datetime  : number;
-	file      : LemtestFile;
+	_id			  : LemtestExportOptions['_id'];
+	datetime  : LemtestExportOptions['datetime'];
 	progress  : LemtestExportOptions['progress'];
 	status    : LemtestExportOptions['status'];
 	downloaded: LemtestExportOptions['downloaded'];
-	onChange  : LemtestExportOptions['onChange'];
-	onDownload: LemtestExportOptions['onDownload'];
+	file      : LemtestFile;
 	interval  : any;
 
-	constructor(datetime: number, options = c.DEFAULT_OPTIONS as LemtestExportOptions){
+	constructor(options = c.DEFAULT_OPTIONS as LemtestExportOptions, register: Record<string, Exportable>){
 
-		this.datetime   = datetime;
-		this.file       = options.file ?? c.DEFAULT_FILE;
+		this._id        = options._id ?? c.DEFAULT_ID;
+		this.datetime   = options.datetime ?? c.DEFAULT_DATETIME;
 		this.progress   = typeof options.progress === 'number' && options.progress >= c.DEFAULT_PROGRESS && options.progress <= c.PROGRESS_MAX ? options.progress : c.DEFAULT_PROGRESS;
 		this.status     = c.STATUSES.includes(options.status) ? options.status : c.DEFAULT_STATUS;
 		this.downloaded = options.downloaded === true;
-		this.onChange   = typeof options.onChange === 'function' ? options.onChange : c.DEFAULT_ON_CHANGE;
-		this.onDownload = typeof options.onDownload === 'function' ? options.onDownload : c.DEFAULT_ON_DOWNLOAD;
+		this.file       = options.file ?? c.DEFAULT_FILE;
 		this.interval   = null;
 
-		this.localStorage();
+		if(!this._id){
+
+			this._id = ExportsCollection.insert({
+
+				datetime  : this.datetime,
+				file      : this.file,
+				progress  : this.progress,
+				status    : this.status,
+				downloaded: this.downloaded
+
+			});
+
+		}
+
+		if(this.status === c.STATUS_PROGRESS){
+
+			const FORCE = true;
+
+			this.start(FORCE);
+
+		}
+
+		register[this._id] = this;
 
 	}
 
-	static getExports(methods: LemtestExportMethods, existing = [] as Exportable[]):[Exportable]{
-
-		const storage = window.localStorage.getItem('exports');
-		const exports = storage ? JSON.parse(storage) : [];
-
-		return exports.map((e: Exportable) => existing.find((f: Exportable) => f.datetime === e.datetime) || new Exportable(e.datetime, {
-
-			file      : e.file,
-			progress  : e.progress,
-			status    : e.status,
-			downloaded: e.downloaded,
-			onChange  : methods.onChange,
-			onDownload: methods.onDownload
-
-		}));
-
-	}
-
-	start(): Promise<void>{
+	start(force: boolean): Promise<void>{
 
 		return new Promise((resolve, reject) => {
 
 			try{
 
-				if(this.status === c.STATUS_PROGRESS){
+				if(this.status === c.STATUS_PROGRESS && !force){
 
 					resolve();
 
@@ -71,16 +75,14 @@ export class Exportable{
 
 					this.progress += c.PROGRESS_AVERAGE;
 
-					this.localStorage();
-					this.onChange();
+					this.updateMongo();
 
 					if(this.progress >= c.PROGRESS_MAX){
 
 						this.status = c.STATUS_FINISHED;
 
 						this.clearInterval();
-						this.localStorage();
-						this.onChange();
+						this.updateMongo();
 
 						resolve();
 
@@ -106,8 +108,7 @@ export class Exportable{
 		this.progress = 0;
 
 		this.clearInterval();
-		this.localStorage();
-		this.onChange();
+		this.updateMongo();
 
 	}
 
@@ -118,20 +119,7 @@ export class Exportable{
 		this.status = c.STATUS_PAUSED;
 
 		this.clearInterval();
-		this.localStorage();
-		this.onChange();
-
-	}
-
-	cancel():void{
-
-		if(this.status === c.STATUS_CANCELED) return;
-
-		this.status = c.STATUS_CANCELED;
-
-		this.clearInterval();
-		this.localStorage();
-		this.onChange();
+		this.updateMongo();
 
 	}
 
@@ -140,8 +128,7 @@ export class Exportable{
 		const DELETE = true;
 
 		this.clearInterval();
-		this.localStorage(DELETE);
-		this.onChange();
+		this.updateMongo(DELETE);
 
 	}
 
@@ -153,9 +140,7 @@ export class Exportable{
 
 			if(file._id){
 
-				this.onDownload(file._id);
-
-				file.downloaded += 1;
+				FilesCollection.update(file._id, {$inc: {downloaded: 1}});
 
 				const link    = document.createElement('a');
 				const content = JSON.stringify(file);
@@ -167,7 +152,7 @@ export class Exportable{
 				link.click();
 
 				this.downloaded = true;
-				this.localStorage();
+				this.updateMongo();
 
 			}
 
@@ -211,7 +196,7 @@ export class Exportable{
 
 	canDownload():boolean{
 
-		return this.status === c.STATUS_FINISHED && !this.downloaded;
+		return this.status === c.STATUS_FINISHED;
 
 	}
 
@@ -237,36 +222,29 @@ export class Exportable{
 
 		this.file = file;
 
-		this.localStorage();
-		this.onChange();
+		this.updateMongo();
 
 	}
 
-	localStorage(remove = false):void{
+	updateMongo(remove = false):void{
 
 		try{
 
-			const storage = window.localStorage.getItem('exports');
-			const exports = storage ? JSON.parse(storage) : [];
-			const store   = exports.find((e: Exportable) => this.datetime === e.datetime);
+			const {_id, datetime, file, progress, status, downloaded} = this;
 
-			const {datetime, file, progress, status, downloaded} = this;
+			if(_id && remove){
 
-			if(store && remove){
+				ExportsCollection.remove(_id);
 
-				exports.splice(exports.indexOf(store), 1);
+			}else if(_id){
 
-			}else if(store){
-
-				exports[exports.indexOf(store)] = {datetime, file, progress, status, downloaded};
+				ExportsCollection.update(_id, {datetime, file, progress, status, downloaded});
 
 			}else{
 
-				exports.push({datetime, file, progress, status, downloaded});
+				ExportsCollection.insert({datetime, file, progress, status, downloaded});
 
 			}
-
-			window.localStorage.setItem('exports', JSON.stringify(exports));
 
 		}catch(error){
 

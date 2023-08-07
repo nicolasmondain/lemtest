@@ -1,30 +1,22 @@
 import {
 
-	LemtestExportOptions,
 	LemtestFile,
+	LemtestExportOptions,
 	TemplateInstanceExports
 
 } from '../../../@types/lemtest';
 
 import {Exportable} from '../../modules/Exportable';
-import {FilesCollection} from '../../api/FilesCollection'
-import {ReactiveVar} from 'meteor/reactive-var';
+import {Exportables} from '../../modules/Exportables';
+import {ExportsCollection} from '../../api/ExportsCollection'
 import {Template} from 'meteor/templating';
 
 import './Exports.html';
 import '../Export/Export.ts';
-import '../Exported/Exported';
-
-const onDownload = (id: String):any => FilesCollection.update(id, {$inc: {downloaded: 1}});
-const onChange   = (exports: ReactiveVar<[Exportable]>):LemtestExportOptions['onChange'] => () => exports.set(Exportable.getExports({onChange: onChange((this as any).exports), onDownload}, exports.get() as [Exportable]));
 
 Template.exports.onCreated(function(this: TemplateInstanceExports) {
 
-	this.subscribe('files');
-
-	this.exports = new ReactiveVar([] as unknown as [Exportable]);
-
-	this.exports.set(Exportable.getExports({onChange: onChange(this.exports), onDownload}, []));
+	this.subscribe('exports');
 
 });
 
@@ -32,17 +24,17 @@ Template.exports.helpers({
 
 	exports(){
 
-		return (Template.instance() as TemplateInstanceExports).exports.get();
+		return ExportsCollection.find({}).fetch().map((exportable) => {
 
-	},
-	update(){
+			if(exportable._id && Exportables[exportable._id]){
 
-		return onChange((Template.instance() as TemplateInstanceExports).exports);
+				return Exportables[exportable._id];
 
-	},
-	files(){
+			}
 
-		return FilesCollection.find({}).fetch();
+			return new Exportable(exportable as LemtestExportOptions, Exportables);
+
+		});
 
 	}
 
@@ -50,26 +42,19 @@ Template.exports.helpers({
 
 Template.exports.events({
 
-	'click .js-new'() {
+	'click .js-new'(){
 
 		try{
 
-			const datetime  = new Date().getTime();
-			const {exports} = Template.instance() as TemplateInstanceExports;
-			const array     = exports.get();
+			new Exportable({
 
-			array.push(new Exportable(datetime, {
-
+				datetime	: new Date().getTime(),
 				file      : {} as LemtestFile,
 				progress  : 0,
 				status    : 'UNSTARTED',
-				downloaded: false,
-				onChange  : onChange(exports),
-				onDownload
+				downloaded: false
 
-			}));
-
-			exports.set(array);
+			}, Exportables);
 
 		}catch(error){
 

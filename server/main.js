@@ -1,4 +1,5 @@
 import {Meteor} from 'meteor/meteor';
+import {ExportsCollection} from '../imports/api/ExportsCollection';
 import {FilesCollection} from '../imports/api/FilesCollection';
 
 const DEFAULT_FILES = [
@@ -12,14 +13,13 @@ const DEFAULT_FILES = [
 
 Meteor.startup(async() => {
 
-	if(await FilesCollection.find().countAsync() === 0){
+	if(FilesCollection.find().count() === 0){
 
-		Promise.all(DEFAULT_FILES.map((file) => FilesCollection.insertAsync(file))).then(() => {
-
-			Meteor.publish('files', () => FilesCollection.find());
-
-		});
+		DEFAULT_FILES.forEach((file) => FilesCollection.insert(file));
 
 	}
+
+	Meteor.publish('files', () => FilesCollection.find());
+	Meteor.publish('exports', () => ExportsCollection.find());
 
 });

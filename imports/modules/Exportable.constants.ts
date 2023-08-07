@@ -20,8 +20,10 @@ const STATUSES            = [STATUS_UNSTARTED, STATUS_PROGRESS, STATUS_STOPPED, 
 const DEFAULT_FILE        = {_id: '', name: '', url: '', downloaded: 0} as LemtestFile;
 const DEFAULT_PROGRESS    = 0;
 const DEFAULT_DOWNLOADED  = false;
+const DEFAULT_ID					= '';
+const DEFAULT_DATETIME    = 0;
 const DEFAULT_STATUS      = STATUS_UNSTARTED as LemtestExportOptions['status'];
-const DEFAULT_OPTIONS     = {file: DEFAULT_FILE, progress: DEFAULT_PROGRESS, status: DEFAULT_STATUS, downloaded: DEFAULT_DOWNLOADED} as LemtestExportOptions;
+const DEFAULT_OPTIONS     = {datetime: DEFAULT_DATETIME, file: DEFAULT_FILE, progress: DEFAULT_PROGRESS, status: DEFAULT_STATUS, downloaded: DEFAULT_DOWNLOADED} as LemtestExportOptions;
 const DEFAULT_ON_CHANGE   = () => {};
 const DEFAULT_ON_DOWNLOAD = () => 0;
 
@@ -42,6 +44,8 @@ export default {
 	DEFAULT_FILE,
 	DEFAULT_PROGRESS,
 	DEFAULT_DOWNLOADED,
+	DEFAULT_ID,
+	DEFAULT_DATETIME,
 	DEFAULT_STATUS,
 	DEFAULT_OPTIONS,
 	DEFAULT_ON_CHANGE,

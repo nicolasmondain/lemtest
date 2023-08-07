@@ -14,7 +14,7 @@ Template.exported.helpers({
 
 	list(){
 
-		return FilesCollection.find({}, {sort: {downloaded: -1} });
+		return FilesCollection.find({}, {sort: {downloaded: -1}});
 
 	}
 

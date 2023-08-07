@@ -6,7 +6,7 @@
 		{{#if exports.length}}
 		<ul role="list" class="divide-y divide-gray-100 rounded-md border border-gray-200">
 			{{#each e in exports}}
-				{{> export export=e update=update files=files}}
+				{{> export export=e}}
 			{{/each}}
 		</ul>
 		{{/if}}
