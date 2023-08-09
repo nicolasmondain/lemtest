@@ -1,14 +1,6 @@
-import {
-
-	LemtestFile,
-	LemtestExportOptions
-
-} from '../../@types/lemtest';
-
+import {LemtestFile, LemtestExportOptions} from '../../@types/lemtest';
 import c from './Exportable.constants';
-
-import {ExportsCollection} from '../api/ExportsCollection';
-import {FilesCollection} from '../api/FilesCollection';
+import {Meteor} from 'meteor/meteor';
 
 export class Exportable{
 
@@ -32,7 +24,7 @@ export class Exportable{
 
 		if(!this._id){
 
-			this._id = ExportsCollection.insert({
+			this._id = Meteor.call('exports.create', {
 
 				datetime  : this.datetime,
 				file      : this.file,
@@ -52,7 +44,7 @@ export class Exportable{
 
 		}
 
-		register[this._id] = this;
+		register[this._id as string] = this;
 
 	}
 
@@ -140,7 +132,7 @@ export class Exportable{
 
 			if(file._id){
 
-				FilesCollection.update(file._id, {$inc: {downloaded: 1}});
+				Meteor.call('files.increment.downloaded', file._id);
 
 				const link    = document.createElement('a');
 				const content = JSON.stringify(file);
@@ -234,15 +226,11 @@ export class Exportable{
 
 			if(_id && remove){
 
-				ExportsCollection.remove(_id);
+				Meteor.call('exports.delete', _id);
 
 			}else if(_id){
 
-				ExportsCollection.update(_id, {datetime, file, progress, status, downloaded});
-
-			}else{
-
-				ExportsCollection.insert({datetime, file, progress, status, downloaded});
+				Meteor.call('exports.update', {_id, datetime, file, progress, status, downloaded});
 
 			}
 

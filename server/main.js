@@ -1,6 +1,9 @@
 import {Meteor} from 'meteor/meteor';
 import {ExportsCollection} from '../imports/api/ExportsCollection';
+import {ExportsMethods} from '../imports/api/ExportsMethods';
 import {FilesCollection} from '../imports/api/FilesCollection';
+import {FilesMethods} from '../imports/api/FilesMethods';
+
 
 const DEFAULT_FILES = [
 
