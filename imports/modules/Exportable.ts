@@ -32,6 +32,14 @@ export class Exportable{
 				status    : this.status,
 				downloaded: this.downloaded
 
+			}, (errorResponse: Meteor.Error) => {
+
+				if(errorResponse){
+
+					console.log(errorResponse.error);
+
+				}
+
 			});
 
 		}
@@ -132,7 +140,15 @@ export class Exportable{
 
 			if(file._id){
 
-				Meteor.call('files.increment.downloaded', file._id);
+				Meteor.call('files.increment.downloaded', file._id, (errorResponse: Meteor.Error) => {
+
+					if(errorResponse){
+
+						console.log(errorResponse.error);
+
+					}
+
+				});
 
 				const link    = document.createElement('a');
 				const content = JSON.stringify(file);
@@ -226,11 +242,27 @@ export class Exportable{
 
 			if(_id && remove){
 
-				Meteor.call('exports.delete', _id);
+				Meteor.call('exports.delete', _id, (errorResponse: Meteor.Error) => {
+
+					if(errorResponse){
+
+						console.log(errorResponse.error);
+
+					}
+
+				});
 
 			}else if(_id){
 
-				Meteor.call('exports.update', {_id, datetime, file, progress, status, downloaded});
+				Meteor.call('exports.update', {_id, datetime, file, progress, status, downloaded}, (errorResponse: Meteor.Error) => {
+
+					if(errorResponse){
+
+						console.log(errorResponse.error);
+
+					}
+
+				});
 
 			}
 
