@@ -8,8 +8,11 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.17.9",
+    "install": "0.13.0",
     "jquery": "^3.6.0",
-    "meteor-node-stubs": "^1.2.1"
+    "meteor-node-stubs": "^1.2.1",
+    "npm": "9.8.1",
+    "simpl-schema": "3.4.1"
   },
   "meteor": {
     "mainModule": {
